@@ -1,0 +1,184 @@
+// Creates the new blend, and feeds back to the dash board for real time control of the blend in use
+<!DOCTYPE html>
+  <html>
+    <head>
+      <base target="_top">
+      <style>
+        body {
+          background-color: #CFF9C8;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          text-align: center;
+          margin: 0;
+          padding: 0;
+          display: flex;
+        }
+
+        .container {
+          width: 100%;
+          max-width: 500px;
+        }
+
+        h1{        
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+
+        table {
+          border-collapse: collapse;
+          margin: 0 auto;
+        }
+
+        table, th, td {
+          border: 1px solid black;
+          padding: 5px;
+        }
+
+        th {
+          padding-right: 10px;
+          font-weight: bold;
+
+        }
+
+        td {
+          padding-right: 10px;
+          text-align: center;
+          font-weight: bold;
+
+        }
+        td: last-child {
+          text-align: right;
+        }
+
+        input {
+          margin: 5px 5px;
+          text-align: center;
+          border-style: solid;
+          border-width: 2px;
+          font-weight: bold;
+          border-sizing: border-box;
+        }
+        button {
+          border-style: 2px solid black;
+          margin-top: 7px;
+        }
+
+        .big-button {
+          padding: 10px 20px;
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+      </style>
+    </head>
+    
+    <body>
+      <div class = "class">
+        <h1>Formulário do Blend</h1>
+        <form id = "blend_form" onsubmit = "submitForm(event); return false;">
+          <table id = "blend_table">
+            <tr>
+            <th> Lote </th>
+            <th>  Estoque </th>
+            <th> Quantidade </th>
+            </tr>
+            
+            <tr>
+              <td id="placeholderbatch1">Carregando...</td>
+              <td id="stockbatch1">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch1" name="ratiobatch1" min="0" step="any">
+              </td>
+            </tr>
+
+            <tr>
+              <td id="placeholderbatch2">Carregando...</td>
+              <td id="stockbatch2">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch2" name="ratiobatch2" min="0" step="any">
+              </td>
+            </tr>
+
+            <tr>
+              <td id="placeholderbatch3">Carregando...</td>
+              <td id="stockbatch3">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch3" name="ratiobatch3" min="0" step="any">
+              </td>
+            </tr>
+
+            <tr>
+              <td id="placeholderbatch4">Carregando...</td>
+              <td id="stockbatch4">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch4" name="ratiobatch4" min="0" step="any">
+              </td>
+            </tr>
+
+            <tr>
+              <td id="placeholderbatch5">Carregando...</td>
+              <td id="stockbatch5">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch5" name="ratiobatch5" min="0" step="any">
+              </td>     
+            </tr>
+
+            <tr>
+              <td id="placeholderbatch6">Carregando...</td>
+              <td id="stockbatch6">Carregando...</td>
+              <td>
+                <input type="number" id="ratiobatch6" name="ratiobatch6" min="0" step="any">
+              </td>
+            </tr>
+          </table>
+          <label for = "blend_number">Número do blend: </label>
+          <input type="number" id="blend_number" name="blend_number" min="0" step="any"><br>
+          <button type = "submit" class = "big-button"> Enviar </button>  
+        </form>
+      </div>
+
+      <script>
+        window.onload = function (){
+          google.script.run.withSuccessHandler(updateBatchInfo).getBatchInformation();
+        };
+        function updateBatchInfo(batchData){
+          try{
+            for(var i = 0; i <= 5; i++) {
+              var batch_placeholder = document.getElementById("placeholderbatch" + (i+1));
+              var stock_placeholder = document.getElementById("stockbatch" + (i+1));
+
+              batch_placeholder.innerHTML = "Lote: " + batchData[0][i];
+              stock_placeholder.innerHTML = parseFloat(batchData[1][i]).toFixed(1);
+            }
+          }
+          catch(error){
+            console.error("An error has occoured in updateBatchInfo", error);
+          }
+        }
+
+        function submitForm(event) {
+          event.preventDefault();
+          var form = document.getElementById("blend_form");
+          var table = document.getElementById("blend_table");
+          var blend_number = document.getElementById("blend_number").value;
+          var tableData = {
+            rows: []
+          };
+            for (var i = 0; i < table.rows.length; i++) {
+              var row = table.rows[i];
+              var rawData = {
+                lote: row.cells[0].innerHTML,
+                estoque: row.cells[1].innerHTML,
+                quantidade: i >= 1 ? row.cells[2].getElementsByTagName("input")[0].value : ""
+              };
+              tableData.rows.push(rawData);
+          }
+          var json_data = JSON.stringify(tableData);
+          google.script.run.FormSubmitBlend(json_data, blend_number);
+          form.reset();
+        }
+      </script>
+    </body>
+  </html>
