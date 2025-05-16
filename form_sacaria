@@ -1,0 +1,68 @@
+// Form to get data about the arrival of new coffee beans
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        background-color: #CFF9C8;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      input {
+        margin: 5px 5px;
+        text-align: center;
+        border-style: solid;
+        border-width: 2px;
+        font-weight: bold;
+        position: absolute;
+        right: 0;
+      }
+      #submit {
+        right: 40%;
+      }
+    </style>
+  </head>
+ 
+  <body onload = "fillBatch()">
+    <form id = "batch_form" onsubmit = "google.script.run.withSuccessHandler(onSubmit).FormSubmit(this); return false;">
+      
+      <label for = "batch"> LOTE:</label>
+      <input type = "number" id = "batch" name = "batch" ><br><br>
+          
+      <label for = "supplier"> FORNECEDOR:</label>
+      <input type = "text" id = "supplier" name = "supplier"><br><br>
+
+      <label for = "street"> RUA DOS BAGS:</label>
+      <input type = "number" id = "street" name = "street"><br><br>
+
+      <label for = "bags"> QUANTIDADE DE BAGS:</label>
+      <input type = "number" id = "bags" name = "bags" ><br><br>
+      
+      <label for = "sackNF"> QUANTIDADE DE SACAS NF:</label>
+      <input type = "number" id = "sackNF" name = "sackNF"><br><br>
+
+      <label for = "sack"> PESO BALANÇA CAMINHÃO:</label>
+      <input type = "number" id = "sack" name = "sack" step = "any"><br><br>
+
+      <input type = "submit" id = "submit" value = "ENVIAR">
+
+    </form>
+
+    <script>
+      function onSubmit(){
+        document.getElementById("batch_form").reset();
+      }
+
+      function fillBatch(){
+        google.script.run.withSuccessHandler(function(batchValue) {
+          document.getElementById("batch").value = batchValue[0];
+          document.getElementById("bags").value = batchValue[1];
+        }).GetBatch();
+      }
+    
+    </script>
+  </body>
+</html>
