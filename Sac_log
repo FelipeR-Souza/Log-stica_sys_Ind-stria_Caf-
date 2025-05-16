@@ -1,0 +1,176 @@
+// Form refering to the bag current being loaded 
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=10.0"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #CFF9C8;
+    }
+
+    h1 {
+      color: #555;
+      font-size: 36px;
+      margin: 0;
+    }
+
+    #bagtrack {
+      scale: 1 2.5;
+      max-width: 600px;
+      width: 90%;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #CFF9C8;
+
+    }
+    
+    h1 img{
+      display: block;
+      margin: 0 auto;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type=number] {
+      width: 100%;
+      height: 26px;
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+      border-style: solid;
+      border-width: 3px;
+    }
+
+    button[type=button] {
+      background-color: #4CAF50;
+      color: #fff;
+      border-style: solid;
+      border-width: 3px;
+      border-radius: 4px;
+      padding: 10px;
+      cursor: pointer;
+      height: 44px;
+      width: 100%;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    button[type=button]:hover {
+      background-color: #3E8E41;
+    }
+
+    .verify_info_batch label,
+    .verify_info_batch input,
+    .verify_info_bag label,
+    .verify_info_bag input {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    #bag,#batch {
+      width: 25%;
+      background-color: #fff;
+      border-style: solid;
+      text-align: right;
+    }
+
+    .verify_info_batch input {
+      margin-left: 121.95px;
+    }
+
+    #btn {
+      margin-bottom: 10px;
+    }
+
+    #silo {
+      margin-bottom: 10px;
+    }
+  </style>
+  
+</head>
+
+<body>
+  <form id="bagtrack">
+    <h1><img src="http://www.cafedositio.com.br/wp-content/themes/cafedositio/assets/imagens/cafedositio-logo.png" height="191" width="253" alt=""></h1>
+    <label for="silo">SILO:</label>
+    <input type="number" id="silo">
+    <br>
+    <label for="weight">PESO EMPILHADEIRA:</label>
+    <input type="number" id="weight">
+    <br><br>
+    <button id="btn" type="button">ARQUIVAR</button>
+    <br>
+    <div class = "verify_info_batch">
+      <label for="batch">LOTE:</label>
+      <input type="number" id="batch" disabled>
+    </div>
+    <div class = "verify_info_bag">
+      <label for="bag">NÚMERO DO BAG:</label>
+      <input type="number" id="bag" disabled>
+    </div>
+  </form>
+  <script>
+    // Read the URL to fill in the fields upon change or loading
+    function setInputsFromURL() {
+      console.log('setInputsFromURL() called');
+      google.script.url.getLocation(location => {
+      let params = location.parameter;
+      console.log(params);
+      const batchInput = document.getElementById("batch");
+      const bagInput = document.getElementById("bag");      
+      
+      // Check if the parameters exist and input value in the respective field
+      if (params.hasOwnProperty("batch")) {
+          batchInput.value = parseInt(params.batch);
+        }
+      if (params.hasOwnProperty("bag")) {
+        bagInput.value = parseInt(params.bag);
+        } 
+      } )
+    }
+
+    // Call the function when the webapp is loaded
+    window.addEventListener("load", setInputsFromURL, );
+
+    // Handle form submission
+    document.getElementById("btn").addEventListener("click", function(e) {
+       // Prevent the default form submission behavior
+      e.preventDefault();
+      var weight = document.getElementById("weight").value;
+      var silo = document.getElementById("silo").value;
+      var bag = document.getElementById("bag").value;
+      var batch = document.getElementById("batch").value;
+      // Validate inputs before submitting
+      if (weight === "" || bag === "" || batch === "" || silo === "") {
+        alert("Please fill in all fields.");
+        return;
+      }
+      // Submit the form data to the server using google.script.run
+      google.script.run.withSuccessHandler(function() {
+        alert("Data submitted successfully.");
+        // Clear form inputs after submission
+        document.getElementById("weight").value = "";
+        document.getElementById("silo").value = "";
+        document.getElementById("bag").value = "";
+        document.getElementById("batch").value = "";
+      }).withFailureHandler(function(error) {
+        alert("An error occurred. Please try again later. Error: " + error.message);
+      }).WeightArchive(weight, batch, bag, silo);
+    });
+  </script>
+</body>
+
+</html>
+
