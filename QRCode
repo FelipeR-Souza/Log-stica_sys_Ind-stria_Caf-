@@ -1,0 +1,96 @@
+function QRCodeData(batch,bag) {
+    // Destination URL
+
+  var webapp = "https://script.google.com/macros/s/AKfycby3k9jfNnRBZ7A8b-T0hSnX5Fz9W7kqnCfhLV2MCCg/dev";
+  return webapp + '?batch=' + encodeURIComponent(batch) + '&bag=' + encodeURIComponent(bag);
+}
+
+function GenerateQRCode() {
+  // get the Google Spread sheet that will hold the data
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("QR CODE GENERATOR");      //ws fetch the "QR CODE GENERATOR" sheet
+  // get the number of QRCodes to be generated
+  var number_bags = ws.getRange("F12:G13").getValue();              // number_bags is the total number of bags in each batch
+  var batch = ws.getRange("F6:G7").getValue();            
+  // get the last row with information in it to set a anchor point to dysplay the QRCodes
+  var sheet = ss.getSheetByName("QRCode");
+  var lastRow = sheet.getLastRow(); // Get the row number of the last row with data
+  var currentRow = lastRow + 1; // Initialize the current row to the next available row after the last row
+  var ruminate = ss.getSheetByName("REPASSE");  // Get the sheet for repasse menagement
+
+  // If the batch is equal to 14 (repasse) start count at the last known bag
+  // Call the QR Code Generator API to generate the QR code image
+ 
+  if (batch == 14){
+    var last_bag = ruminate.getRange("D2").getValue();
+    var count_start = last_bag + 1;
+    for (var bag = count_start; bag <= number_bags + last_bag; bag++) {
+      var data = QRCodeData(batch, bag);                      // x will be the number of each individual bag
+      var response = UrlFetchApp.fetch("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(data));
+      var imageBlob = response.getBlob();
+
+      // Insert the QR code image into a new row in the specified sheet
+      let id = "bag " + bag.toString();
+      sheet.getRange(currentRow, 1).setValue(id);
+      currentRow += 1;
+      sheet.insertImage(imageBlob, 1, currentRow);
+      sheet.autoResizeColumn(1);
+      sheet.autoResizeRows(currentRow, currentRow);
+      currentRow += 16; // Increment the current row number for the next iteration
+    }
+    var new_last_bag = ruminate.getRange("D2").setValue(last_bag + number_bags);
+    NewSheet();
+    ClearCell();
+  }
+  // If the batch is any other non fixed batch
+  // Call the QR Code Generator API to generate the QR code image
+  else{
+    for (var bag = 1; bag <= number_bags; bag++) {
+      var data = QRCodeData(batch, bag);                      // x will be the number of each individual bag
+      var response = UrlFetchApp.fetch("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(data));
+      var imageBlob = response.getBlob();
+
+      // Insert the QR code image into a new row in the specified sheet
+      let id = "bag " + bag.toString();
+      sheet.getRange(currentRow, 1).setValue(id);
+      currentRow += 1;
+      sheet.insertImage(imageBlob, 1, currentRow);
+      sheet.autoResizeColumn(1);
+      sheet.autoResizeRows(currentRow, currentRow);
+      currentRow += 16; // Increment the current row number for the next iteration
+    }
+    NewSheet();
+    ShowForm();
+    Utilities.sleep(5000);
+    ClearCell();
+  }
+}
+
+function NewSheet(){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("QR CODE GENERATOR");       //ws fetch the "QR CODE GENERATOR" sheet
+  var qr_code_sheet = ss.getSheetByName("QRCode");
+  var qr_code_sheet_num = ss.getSheetByName("QR CODE GENERATOR").getIndex();
+  var batch = ws.getRange("F6:G7").getValue();
+
+  qr_code_sheet.setName("QRCode"+ batch.toString());    // changes the QRCode sheet name for easy of disposal
+  ss.insertSheet("QRCode", qr_code_sheet_num);                  // this creates a new sheet with a name at the beginning of the sheet list
+}
+
+function GetBatch() {
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("QR CODE GENERATOR");
+  var batch = ws.getRange("F6:G7").getValue();
+  var bags = ws.getRange("F12:G13").getValue();
+  return [batch, bags];      
+}
+
+function ClearCell(){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("QR CODE GENERATOR");       //ws fetch the "QR CODE GENERATOR" sheet
+  ws.getRangeList(["F6:G7","F12:G13"]).clear({contentsOnly:true});
+}
