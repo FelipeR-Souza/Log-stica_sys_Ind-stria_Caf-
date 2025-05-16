@@ -1,0 +1,18 @@
+/* Fetches the form to be filled by the forklift operator
+function doGet(e) {
+  var template = HtmlService.createTemplateFromFile("Sac_Log");
+  return template.evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function WeightArchive(weight, batch, bag, silo){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("Logicof");
+  ws.appendRow([weight, bag, batch, silo, new Date()]);
+}
+
+function GetWebAppUrl(){
+  var webAppUrl = ScriptApp.getService().getUrl();
+  Logger.log(webAppUrl)
+  return webAppUrl;  
+}
