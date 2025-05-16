@@ -1,0 +1,69 @@
+/*Call the green coffee form */
+function onOpen(){
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu("Custom Menu").addItem("Show Form", "showForm").addToUi();
+}
+/*Display the green coffee form */
+function ShowForm(){
+  var html = HtmlService.createHtmlOutputFromFile("form_sacaria.html").setWidth(440).setHeight(260);
+  SpreadsheetApp.getUi().showModalDialog(html, "form_sacaria");
+}
+/* Form with data about green coffee recieved*/
+function FormSubmit(form){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=609415613";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var batchdb = ss.getSheetByName("Batch_DB");
+  var data = [form.batch, form.supplier.toUpperCase(), form.street, form.bags, form.sackNF, form.sack];
+  batchdb.insertRows(2,1);
+  batchdb.getRange(2, 1, 1, data.length).setValues([data]);
+  batchdb.getRange("G3:M3").copyTo(batchdb.getRange("G2:M2"), SpreadsheetApp.CopyPasteType.PASTE_FORMULA, false);
+  batchdb.getRange("O2").setValue(new Date().toLocaleDateString('en-GB'));
+  SpreadsheetApp.getUi().alert("Form sumitted successfully");
+}
+/* Form with data about coffee blend that is in use*/
+function FormSubmitBlend(raw_data, blend_number){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=719225313";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("Blend_DB");
+  var blend_num = ss.getSheetByName("DASHBOARD");
+  var last_row = ws.getLastRow();
+  var table_data = JSON.parse(raw_data);
+  var rows = table_data.rows;
+
+  for(var i = 1; i < rows.length; i++){
+    var row_data = rows[i];
+    for(var key in row_data){
+      var lote = String(row_data["lote"]).substring(String(row_data["lote"]).indexOf(":") + 1).trim();
+      var estoque = row_data.estoque;
+      var quantidade = row_data.quantidade;
+      }
+    // Write the values to the respective cells in the sheet
+    ws.getRange(i+last_row, 2, 1, 1).setValue(lote);
+    ws.getRange(i+last_row, 3, 1, 1).setValue(estoque);
+    ws.getRange(i+last_row, 4, 1, 1).setValue(quantidade);
+  }
+  ws.getRange(last_row+1, 1, 6, 1).setValue(blend_number).merge();
+  ws.getRange(last_row+1, 5, 6, 1).setValue(new Date().toLocaleDateString('en-GB')).merge();
+  ws.getRange("F2:F7").copyTo(ws.getRange(last_row+1, 6, 6, 1), SpreadsheetApp.CopyPasteType.PASTE_FORMULA, false);
+  ws.getRange("G2").copyTo(ws.getRange(last_row+1, 7, 1, 1), SpreadsheetApp.CopyPasteType.PASTE_FORMULA, false);
+  blend_num.getRange("P12:Q19").setValue(blend_number);
+
+  SpreadsheetApp.getUi().alert("Form sumitted successfully");
+}
+
+/*Display the blend form */
+function ShowFormBlend(){
+  var html = HtmlService.createHtmlOutputFromFile("form_blend.html").setWidth(500).setHeight(480);
+  SpreadsheetApp.getUi().showModalDialog(html, "form_blend");
+}
+
+/*Auto load some information about the available coffee  */
+function getBatchInformation(){
+  var url = "https://docs.google.com/spreadsheets/d/1BCijbN0KfgNl-dIXcYVM6ATh7J7T9pX_2vSr4Ff68mQ/edit#gid=609415613";
+  var ss = SpreadsheetApp.openByUrl(url);
+  var ws = ss.getSheetByName("Pivot DB");  
+  var batch = ws.getRange("A2:A7").getValues();
+  var stock = ws.getRange("B2:B7").getValues();
+  Logger.log([batch, stock]);
+  return [batch, stock];
+}
